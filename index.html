@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>shadolyn_life</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e07856">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#faf7f2; --card:#fff; --text:#2b2b2b; --sub:#7a7a7a;
+  --accent:#e07856; --accent2:#6b8f71; --border:#ece5db;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#1c1a18;--card:#262421;--text:#f0ece6;--sub:#a3998e;--border:#3a362f;}
+}
+:root[data-theme="dark"]{--bg:#1c1a18;--card:#262421;--text:#f0ece6;--sub:#a3998e;--border:#3a362f;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;height:100%}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:14px 16px 8px;border-bottom:1px solid var(--border);z-index:5}
+h1{font-size:19px;margin:0 0 10px}
+.tabs{display:flex;gap:6px}
+.tab{flex:1;text-align:center;padding:8px 6px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-size:13px}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+main{padding:16px;max-width:520px;margin:0 auto;padding-bottom:40px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.moods{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.mood-btn{display:flex;align-items:center;gap:8px;text-align:left;background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:8px 10px;cursor:pointer;color:var(--text)}
+.mood-btn .me{font-size:20px;flex:none}
+.mood-btn .ml{font-size:12px;line-height:1.25}
+.mood-btn.sel{border-color:var(--accent);background:rgba(224,120,86,.14)}
+.mood-btn:nth-child(1),.mood-btn:nth-child(2){border-left:4px solid #6b8f71}
+.mood-btn:nth-child(3),.mood-btn:nth-child(4){border-left:4px solid #9db98a}
+.mood-btn:nth-child(5),.mood-btn:nth-child(6){border-left:4px solid #d9b25c}
+.mood-btn:nth-child(7),.mood-btn:nth-child(8){border-left:4px solid #d97b4f}
+.mood-btn:nth-child(9),.mood-btn:nth-child(10){border-left:4px solid #c0433a}
+textarea,input[type=text],input[type=range]{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)}
+textarea{min-height:60px;resize:vertical}
+button.primary{background:var(--accent2);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;width:100%;margin-top:6px}
+button.share-btn{background:none;border:1px solid var(--border);color:var(--accent);font-size:12px;padding:4px 10px;border-radius:8px;margin-top:6px}
+.entry{border-top:1px solid var(--border);padding:8px 0;font-size:13px}
+.entry:first-child{border-top:none}
+.entry .top{display:flex;justify-content:space-between;color:var(--sub)}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;background:var(--accent2)}
+.empty{color:var(--sub);font-size:13px;text-align:center;padding:20px 0}
+.hidden{display:none}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal-overlay.hidden{display:none}
+.modal-card{background:var(--card);border-radius:16px;padding:24px 20px;max-width:320px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.modal-emoji{font-size:52px;line-height:1}
+.modal-text{font-size:14px;margin-top:10px;color:var(--text)}
+</style>
+</head>
+<body>
+<header>
+  <h1>✨ shadolyn_life</h1>
+  <div class="tabs">
+    <div class="tab active" data-tab="checkin">Check-in</div>
+    <div class="tab" data-tab="goals">Ziele</div>
+    <div class="tab" data-tab="highlights">Highlights</div>
+  </div>
+</header>
+<main>
+
+  <section id="tab-checkin">
+    <div class="card">
+      <div class="moods" id="moodPicker"></div>
+      <textarea id="moodNote" placeholder="Wie geht's dir gerade? (optional)"></textarea>
+      <button class="primary" id="saveMood">Stimmung speichern</button>
+    </div>
+    <div class="card">
+      <strong>Deine Einträge</strong>
+      <div id="myMoods"><div class="empty">Noch keine Einträge.</div></div>
+    </div>
+  </section>
+
+  <section id="tab-goals" class="hidden">
+    <div class="card">
+      <input type="text" id="goalTitle" placeholder="Ziel-Titel (z.B. 'Jeden Monat 1 Buch lesen')">
+      <button class="primary" id="addGoal">Ziel hinzufügen</button>
+    </div>
+    <div id="myGoals"><div class="empty">Noch keine Ziele.</div></div>
+  </section>
+
+  <section id="tab-highlights" class="hidden">
+    <div class="card">
+      <strong>Bis zu 3 positive Highlights heute</strong>
+      <input type="text" id="hl1" placeholder="Highlight 1" style="margin-top:8px">
+      <input type="text" id="hl2" placeholder="Highlight 2" style="margin-top:8px">
+      <input type="text" id="hl3" placeholder="Highlight 3" style="margin-top:8px">
+      <button class="primary" id="saveHighlights">Highlights speichern</button>
+    </div>
+    <div class="card">
+      <strong>Deine Highlights</strong>
+      <div id="myHighlights"><div class="empty">Noch keine Highlights.</div></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="moodModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div id="modalEmoji" class="modal-emoji"></div>
+    <div id="modalText" class="modal-text"></div>
+    <button class="primary" id="modalClose">Schließen</button>
+  </div>
+</div>
+
+<script>
+const MOODS = [
+  {emoji:"🚀", label:"unbesiegbar", msg:"Unaufhaltbar! Nutz den Schwung für etwas Großes heute."},
+  {emoji:"🤩", label:"super", msg:"Läuft bei dir gerade richtig gut – genieß den Moment."},
+  {emoji:"😄", label:"glücklich", msg:"Schönes Gefühl. Vielleicht ein guter Moment, um es festzuhalten."},
+  {emoji:"🙂", label:"zufrieden", msg:"Ruhig und im Reinen mit dir – das ist eine Menge wert."},
+  {emoji:"😐", label:"geht so", msg:"Auch okay so. Nicht jeder Tag muss glänzen."},
+  {emoji:"😟", label:"unsicher", msg:"Unsicherheit ist unangenehm, aber sie sagt nichts über deinen Wert aus. Schritt für Schritt."},
+  {emoji:"😢", label:"traurig", msg:"Traurigkeit darf da sein. Nimm dir die Zeit, die sie braucht."},
+  {emoji:"😣", label:"voll gestresst", msg:"Kurz durchatmen. Eine Pause ist gerade erlaubt."},
+  {emoji:"🙄", label:"I don't fucking care", msg:"Manchmal ist Null-Bock einfach die ehrliche Antwort."},
+  {emoji:"😡", label:"keep your mouth shut / spit my fucking rage in your face", msg:"Puh, das brodelt gerade richtig. Vielleicht hilft's, es dir kurz von der Seele zu schreiben, bevor du's jemandem an den Kopf wirfst."}
+];
+let selMood=null;
+
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll("main > section").forEach(s=>s.classList.add("hidden"));
+  t.classList.add("active");
+  document.getElementById("tab-"+t.dataset.tab).classList.remove("hidden");
+});
+
+const picker=document.getElementById("moodPicker");
+MOODS.forEach((m,i)=>{
+  const b=document.createElement("button");
+  b.className="mood-btn";
+  b.innerHTML = `<span class="me">${m.emoji}</span><span class="ml">${m.label}</span>`;
+  b.onclick=()=>{selMood=i; [...picker.children].forEach(c=>c.classList.remove("sel")); b.classList.add("sel"); showMoodPopup(m);};
+  picker.appendChild(b);
+});
+
+function fmtTime(ts){
+  try{ return new Date(ts).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return ""; }
+}
+function esc(s){ return (s||"").replace(/</g,"&lt;"); }
+
+function showMoodPopup(m){
+  document.getElementById("modalEmoji").textContent = m.emoji;
+  document.getElementById("modalText").textContent = m.msg;
+  const overlay = document.getElementById("moodModal");
+  overlay.classList.remove("hidden");
+  overlay.style.display = "flex";
+}
+document.getElementById("modalClose").onclick = ()=>{
+  const overlay = document.getElementById("moodModal");
+  overlay.classList.add("hidden");
+  overlay.style.display = "none";
+};
+
+function load(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
+function save(key, arr){ try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){} }
+
+async function shareText(text){
+  if(navigator.share){
+    try{ await navigator.share({text}); return; }catch(e){ /* user cancelled or unsupported, fall through */ }
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    alert("In die Zwischenablage kopiert – jetzt in WhatsApp o.ä. einfügen!");
+  }catch(e){
+    prompt("Text zum manuellen Kopieren:", text);
+  }
+}
+
+// ---- Moods ----
+function renderMoods(){
+  const el=document.getElementById("myMoods");
+  const items = load("sl_moods");
+  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Einträge.</div>'; return; }
+  el.innerHTML = items.slice().reverse().map((v,idx)=>{
+    const realIdx = items.length-1-idx;
+    const m = MOODS[v.mood] || {emoji:"?",label:""};
+    return `<div class="entry"><div class="top"><span>${m.emoji} ${esc(m.label)}</span><span>${fmtTime(v.ts)}</span></div>${v.note?`<div>${esc(v.note)}</div>`:""}<button class="share-btn" data-i="${realIdx}">Teilen</button></div>`;
+  }).join("");
+  el.querySelectorAll("button.share-btn").forEach(b=>{
+    b.onclick=()=>{
+      const v=items[b.dataset.i]; const m=MOODS[v.mood];
+      shareText(`${m.emoji} Meine Stimmung: ${m.label}${v.note?"\n"+v.note:""}`);
+    };
+  });
+}
+document.getElementById("saveMood").onclick=()=>{
+  if(selMood===null){ alert("Bitte eine Stimmung auswählen."); return; }
+  const items = load("sl_moods");
+  items.push({mood:selMood, note:document.getElementById("moodNote").value.trim(), ts:Date.now()});
+  save("sl_moods", items);
+  document.getElementById("moodNote").value="";
+  selMood=null;
+  [...picker.children].forEach(c=>c.classList.remove("sel"));
+  renderMoods();
+};
+
+// ---- Goals ----
+function renderGoals(){
+  const el=document.getElementById("myGoals");
+  const items = load("sl_goals");
+  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Ziele.</div>'; return; }
+  el.innerHTML = items.map((v,i)=>`<div class="card">
+    <div class="top" style="display:flex;justify-content:space-between">
+      <strong>${esc(v.title)}</strong><span>${v.progress||0}%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${v.progress||0}%"></div></div>
+    <input type="range" min="0" max="100" value="${v.progress||0}" data-i="${i}" class="goalSlider" style="margin-top:8px">
+    <button class="share-btn" data-i="${i}" data-role="share">Teilen</button>
+  </div>`).join("");
+  el.querySelectorAll(".goalSlider").forEach(s=>{
+    s.oninput=()=>{
+      const arr=load("sl_goals"); arr[s.dataset.i].progress=parseInt(s.value); save("sl_goals",arr); renderGoals();
+    };
+  });
+  el.querySelectorAll("button[data-role=share]").forEach(b=>{
+    b.onclick=()=>{
+      const v=items[b.dataset.i];
+      shareText(`🎯 Mein Ziel: ${v.title}\nFortschritt: ${v.progress||0}%`);
+    };
+  });
+}
+document.getElementById("addGoal").onclick=()=>{
+  const title=document.getElementById("goalTitle").value.trim();
+  if(!title) return;
+  const items=load("sl_goals");
+  items.push({title, progress:0, ts:Date.now()});
+  save("sl_goals", items);
+  document.getElementById("goalTitle").value="";
+  renderGoals();
+};
+
+// ---- Highlights ----
+function renderHighlights(){
+  const el=document.getElementById("myHighlights");
+  const items = load("sl_highlights");
+  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Highlights.</div>'; return; }
+  el.innerHTML = items.slice().reverse().map((v,idx)=>{
+    const realIdx = items.length-1-idx;
+    const list = (v.items||[]).map(i=>`<li>${esc(i)}</li>`).join("");
+    return `<div class="entry"><div class="top"><span>✨ Highlights</span><span>${fmtTime(v.ts)}</span></div><ul style="margin:6px 0 0;padding-left:18px">${list}</ul><button class="share-btn" data-i="${realIdx}">Teilen</button></div>`;
+  }).join("");
+  el.querySelectorAll("button.share-btn").forEach(b=>{
+    b.onclick=()=>{
+      const v=items[b.dataset.i];
+      shareText(`✨ Meine Highlights heute:\n${(v.items||[]).map(i=>"- "+i).join("\n")}`);
+    };
+  });
+}
+document.getElementById("saveHighlights").onclick=()=>{
+  const items=[document.getElementById("hl1").value.trim(), document.getElementById("hl2").value.trim(), document.getElementById("hl3").value.trim()].filter(Boolean);
+  if(!items.length){ alert("Bitte mindestens ein Highlight eintragen."); return; }
+  const arr=load("sl_highlights");
+  arr.push({items, ts:Date.now()});
+  save("sl_highlights", arr);
+  document.getElementById("hl1").value=""; document.getElementById("hl2").value=""; document.getElementById("hl3").value="";
+  renderHighlights();
+};
+
+renderMoods(); renderGoals(); renderHighlights();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
