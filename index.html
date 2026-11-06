@@ -5,21 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>shadolyn_life</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#e07856">
+<meta name="theme-color" content="#ff4fa8">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
 <style>
 :root{
-  --bg:#faf7f2; --card:#fff; --text:#2b2b2b; --sub:#7a7a7a;
-  --accent:#e07856; --accent2:#6b8f71; --border:#ece5db;
+  --bg:#fff3f9; --card:#fff; --text:#2a1824; --sub:#8c6c80;
+  --accent:#ff4fa8; --accent2:#ff2d95; --border:#f7d3e6;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   box-sizing:border-box;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){--bg:#1c1a18;--card:#262421;--text:#f0ece6;--sub:#a3998e;--border:#3a362f;}
+  :root:not([data-theme="light"]){--bg:#0d0a0d;--card:#1a121a;--text:#f8edf4;--sub:#b895aa;--border:#3b2236;}
 }
-:root[data-theme="dark"]{--bg:#1c1a18;--card:#262421;--text:#f0ece6;--sub:#a3998e;--border:#3a362f;}
+:root[data-theme="dark"]{--bg:#0d0a0d;--card:#1a121a;--text:#f8edf4;--sub:#b895aa;--border:#3b2236;}
 *{box-sizing:border-box}
+input[type=checkbox],input[type=range]{accent-color:var(--accent2)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;height:100%}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:14px 16px 8px;border-bottom:1px solid var(--border);z-index:5}
@@ -33,7 +34,7 @@ main{padding:16px;max-width:520px;margin:0 auto;padding-bottom:40px}
 .mood-btn{display:flex;align-items:center;gap:8px;text-align:left;background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:8px 10px;cursor:pointer;color:var(--text)}
 .mood-btn .me{font-size:20px;flex:none}
 .mood-btn .ml{font-size:12px;line-height:1.25}
-.mood-btn.sel{border-color:var(--accent);background:rgba(224,120,86,.14)}
+.mood-btn.sel{border-color:var(--accent);background:rgba(255,79,168,.15)}
 .mood-btn:nth-child(1),.mood-btn:nth-child(2){border-left:4px solid #6b8f71}
 .mood-btn:nth-child(3),.mood-btn:nth-child(4){border-left:4px solid #9db98a}
 .mood-btn:nth-child(5),.mood-btn:nth-child(6){border-left:4px solid #d9b25c}
@@ -513,9 +514,9 @@ const SYSTEM = [
 ];
 
 function renderChecklist(){
-  document.getElementById("sysChecklist").innerHTML = SYSTEM.map(g=>`<div class="sys-group"><h3>${g.emoji} ${esc(g.title)}</h3>${
-    g.signals.map((t,i)=>`<label class="sys-check"><input type="checkbox" data-l="${g.level}" data-i="${i}"> ${esc(t)}</label>`).join("")
-  }</div>`).join("");
+  document.getElementById("sysChecklist").innerHTML = `<div class="sys-group">${
+    SYSTEM.map(g=>g.signals.map((t,i)=>`<label class="sys-check"><input type="checkbox" data-l="${g.level}" data-i="${i}"> ${esc(t)}</label>`).join("")).join("")
+  }</div>`;
 }
 function setAmpel(level){
   document.querySelectorAll("#ampel .lamp").forEach(l=>l.classList.toggle("on", parseInt(l.dataset.l)===level));

@@ -1,4 +1,4 @@
-const CACHE_NAME = "shadolyn-life-v5";
+const CACHE_NAME = "shadolyn-life-v6";
 const ASSETS = ["./", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {
