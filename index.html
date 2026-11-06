@@ -24,8 +24,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:14px 16px 8px;border-bottom:1px solid var(--border);z-index:5}
 h1{font-size:19px;margin:0 0 10px}
-.tabs{display:flex;gap:6px}
-.tab{flex:1;text-align:center;padding:8px 6px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-size:13px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.tab{flex:none;white-space:nowrap;text-align:center;padding:8px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-size:13px}
 .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 main{padding:16px;max-width:520px;margin:0 auto;padding-bottom:40px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
@@ -37,11 +37,14 @@ main{padding:16px;max-width:520px;margin:0 auto;padding-bottom:40px}
 .mood-btn:nth-child(1),.mood-btn:nth-child(2){border-left:4px solid #6b8f71}
 .mood-btn:nth-child(3),.mood-btn:nth-child(4){border-left:4px solid #9db98a}
 .mood-btn:nth-child(5),.mood-btn:nth-child(6){border-left:4px solid #d9b25c}
-.mood-btn:nth-child(7),.mood-btn:nth-child(8){border-left:4px solid #d97b4f}
-.mood-btn:nth-child(9),.mood-btn:nth-child(10){border-left:4px solid #c0433a}
-textarea,input[type=text],input[type=range]{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)}
+.mood-btn:nth-child(7),.mood-btn:nth-child(8),.mood-btn:nth-child(9){border-left:4px solid #d97b4f}
+.mood-btn:nth-child(10),.mood-btn:nth-child(11){border-left:4px solid #c0433a}
+textarea,input[type=text],input[type=date],input[type=range]{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)}
 textarea{min-height:60px;resize:vertical}
 button.primary{background:var(--accent2);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;width:100%;margin-top:6px}
+button.del-btn{background:none;border:1px solid var(--border);color:var(--sub);font-size:12px;padding:4px 10px;border-radius:8px;margin-top:6px;margin-left:6px}
+.past .entry{opacity:.6}
+button.secondary{background:none;border:2px solid var(--accent2);color:var(--accent2);padding:9px 16px;border-radius:10px;font-size:14px;font-weight:600;width:100%;margin-top:8px}
 button.share-btn{background:none;border:1px solid var(--border);color:var(--accent);font-size:12px;padding:4px 10px;border-radius:8px;margin-top:6px}
 .entry{border-top:1px solid var(--border);padding:8px 0;font-size:13px}
 .entry:first-child{border-top:none}
@@ -55,15 +58,32 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
 .modal-card{background:var(--card);border-radius:16px;padding:24px 20px;max-width:320px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .modal-emoji{font-size:52px;line-height:1}
 .modal-text{font-size:14px;margin-top:10px;color:var(--text)}
+.modal-text.left{text-align:left}
+.modal-text ul{margin:6px 0 0;padding-left:18px}
+.modal-text li{margin:4px 0}
+.ampel{display:flex;justify-content:center;gap:16px;background:#2b2b2b;border-radius:40px;padding:14px 22px;width:max-content;margin:12px auto}
+.lamp{width:52px;height:52px;border-radius:50%;opacity:.18;transition:opacity .3s,box-shadow .3s}
+.lamp.y{background:#f2c94c}.lamp.o{background:#f2994a}.lamp.r{background:#eb5757}
+.lamp.on{opacity:1}
+.lamp.y.on{box-shadow:0 0 26px 6px rgba(242,201,76,.75)}
+.lamp.o.on{box-shadow:0 0 26px 6px rgba(242,153,74,.75)}
+.lamp.r.on{box-shadow:0 0 26px 6px rgba(235,87,87,.75)}
+.sys-group h3{font-size:14px;margin:14px 0 4px}
+.sys-check{display:flex;align-items:center;gap:8px;font-size:14px;padding:6px 0}
+.sys-check input{width:20px;height:20px;flex:none}
+.sys-result{text-align:center;font-size:14px;margin-top:6px;color:var(--sub)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
 </style>
 </head>
 <body>
 <header>
   <h1>✨ shadolyn_life</h1>
   <div class="tabs">
-    <div class="tab active" data-tab="checkin">Check-in</div>
+    <div class="tab active" data-tab="checkin">Check-in Stimmung</div>
     <div class="tab" data-tab="goals">Ziele</div>
     <div class="tab" data-tab="highlights">Highlights</div>
+    <div class="tab" data-tab="events">Vorfreude</div>
+    <div class="tab" data-tab="system">Check-in System</div>
   </div>
 </header>
 <main>
@@ -73,6 +93,7 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
       <div class="moods" id="moodPicker"></div>
       <textarea id="moodNote" placeholder="Wie geht's dir gerade? (optional)"></textarea>
       <button class="primary" id="saveMood">Stimmung speichern</button>
+      <button class="secondary" id="shareCurrent">Als Comic-Bild teilen</button>
     </div>
     <div class="card">
       <strong>Deine Einträge</strong>
@@ -102,6 +123,42 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
     </div>
   </section>
 
+  <section id="tab-events" class="hidden">
+    <div class="card">
+      <strong>Worauf ich mich freue</strong>
+      <input type="text" id="evTitle" placeholder="z. B. Konzert, Urlaub, Treffen mit …" style="margin-top:8px">
+      <input type="date" id="evDate" style="margin-top:8px">
+      <input type="text" id="evNote" placeholder="Notiz (optional)" style="margin-top:8px">
+      <button class="primary" id="addEvent">Hinzufügen</button>
+    </div>
+    <div class="card">
+      <strong>Kommende Ereignisse</strong>
+      <div id="evUpcoming"><div class="empty">Noch nichts eingetragen.</div></div>
+    </div>
+    <div class="card past hidden" id="evPastCard">
+      <strong>Vergangen</strong>
+      <div id="evPast"></div>
+    </div>
+  </section>
+
+  <section id="tab-system" class="hidden">
+    <div class="card">
+      <strong>Nervensystem Frühwarnsystem</strong>
+      <div class="ampel" id="ampel">
+        <div class="lamp y" data-l="1"></div>
+        <div class="lamp o" data-l="2"></div>
+        <div class="lamp r" data-l="3"></div>
+      </div>
+      <div class="sys-result" id="sysResult">Kreuze an, was gerade auf dich zutrifft.</div>
+      <div id="sysChecklist"></div>
+      <button class="primary" id="sysEval">Auswerten</button>
+    </div>
+    <div class="card">
+      <strong>Deine letzten Check-ins</strong>
+      <div id="sysHistory"><div class="empty">Noch keine Einträge.</div></div>
+    </div>
+  </section>
+
 </main>
 
 <div id="moodModal" class="modal-overlay hidden">
@@ -121,11 +178,18 @@ const MOODS = [
   {emoji:"😐", label:"geht so", msg:"Auch okay so. Nicht jeder Tag muss glänzen."},
   {emoji:"😟", label:"unsicher", msg:"Unsicherheit ist unangenehm, aber sie sagt nichts über deinen Wert aus. Schritt für Schritt."},
   {emoji:"😢", label:"traurig", msg:"Traurigkeit darf da sein. Nimm dir die Zeit, die sie braucht."},
+  {emoji:"😔", label:"schwierig", msg:"Schwierige Phasen sind anstrengend. Du musst heute nicht alles lösen – ein kleiner Schritt reicht."},
   {emoji:"😣", label:"voll gestresst", msg:"Kurz durchatmen. Eine Pause ist gerade erlaubt."},
   {emoji:"🙄", label:"I don't fucking care", msg:"Manchmal ist Null-Bock einfach die ehrliche Antwort."},
   {emoji:"😡", label:"keep your mouth shut / spit my fucking rage in your face", msg:"Puh, das brodelt gerade richtig. Vielleicht hilft's, es dir kurz von der Seele zu schreiben, bevor du's jemandem an den Kopf wirfst."}
 ];
 let selMood=null;
+// Reihenfolge der Stimmungen vor Version 4 (damit alte Einträge richtig zugeordnet bleiben)
+const LEGACY_LABELS=["unbesiegbar","super","glücklich","zufrieden","geht so","unsicher","traurig","voll gestresst","I don't fucking care","keep your mouth shut / spit my fucking rage in your face"];
+function moodOf(v){
+  const label = v.key || LEGACY_LABELS[v.mood];
+  return MOODS.find(m=>m.label===label) || {emoji:"?",label:"",msg:""};
+}
 
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
@@ -151,6 +215,7 @@ function esc(s){ return (s||"").replace(/</g,"&lt;"); }
 
 function showMoodPopup(m){
   document.getElementById("modalEmoji").textContent = m.emoji;
+  document.getElementById("modalText").classList.remove("left");
   document.getElementById("modalText").textContent = m.msg;
   const overlay = document.getElementById("moodModal");
   overlay.classList.remove("hidden");
@@ -164,6 +229,125 @@ document.getElementById("modalClose").onclick = ()=>{
 
 function load(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
 function save(key, arr){ try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){} }
+
+// ---- Comic-Bild für die Stimmung ----
+const COMIC = {
+  "unbesiegbar":{pic:"💪",bg:"#8fd8a0"},
+  "super":{pic:"🤩",bg:"#8fd8a0"},
+  "glücklich":{pic:"😄",bg:"#c3e88d"},
+  "zufrieden":{pic:"😌",bg:"#c3e88d"},
+  "geht so":{pic:"😐",bg:"#ffe27a"},
+  "unsicher":{pic:"😬",bg:"#ffe27a"},
+  "traurig":{pic:"😭",bg:"#ffb36b"},
+  "schwierig":{pic:"🌧️",bg:"#ffb36b"},
+  "voll gestresst":{pic:"🤯",bg:"#ffb36b"},
+  "I don't fucking care":{pic:"🖕",bg:"#ff8f7a"},
+  "keep your mouth shut / spit my fucking rage in your face":{pic:"👊",bg:"#ff6b5e"}
+};
+function cRoundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function cWrap(ctx,text,maxW){
+  const words=text.split(/\s+/), lines=[]; let cur="";
+  for(const w of words){
+    const t=cur?cur+" "+w:w;
+    if(ctx.measureText(t).width>maxW && cur){ lines.push(cur); cur=w; } else cur=t;
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+function cBurst(ctx,cx,cy,rOut,rIn,n){
+  ctx.beginPath();
+  for(let i=0;i<n*2;i++){
+    const a=Math.PI/n*i-Math.PI/2;
+    const r=(i%2===0)?rOut*(1+0.06*Math.sin(i*2.3)):rIn;
+    const x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  }
+  ctx.closePath();
+}
+function drawMoodImage(m, note){
+  const S=1080, c=document.createElement("canvas"); c.width=S; c.height=S;
+  const ctx=c.getContext("2d");
+  const cfg=COMIC[m.label]||{pic:m.emoji,bg:"#ffe27a"};
+  const FONT="Impact, 'Arial Black', 'Helvetica Neue', Arial, sans-serif";
+  note=(note||"").trim(); if(note.length>140) note=note.slice(0,137)+"…";
+  // Hintergrund + Halftone-Punkte
+  ctx.fillStyle=cfg.bg; ctx.fillRect(0,0,S,S);
+  ctx.fillStyle="rgba(0,0,0,0.12)";
+  for(let y=0,row=0;y<S+40;y+=40,row++){
+    for(let x=(row%2)*20;x<S+40;x+=40){
+      const r=3+12*(y/S);
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    }
+  }
+  ctx.lineJoin="round"; ctx.strokeStyle="#000";
+  const hasNote=!!note;
+  const bcx=540, bcy=hasNote?580:480, rOut=hasNote?290:330, rIn=rOut*0.72;
+  // Sprechblase
+  if(hasNote){
+    ctx.font="700 44px Arial, sans-serif";
+    const lines=cWrap(ctx,note,860).slice(0,3);
+    const h=lines.length*56+50, x=70, y=50, w=940;
+    ctx.lineWidth=10;
+    ctx.fillStyle="#000"; cRoundRect(ctx,x+12,y+12,w,h,36); ctx.fill();
+    // Zacke
+    ctx.fillStyle="#fff";
+    ctx.beginPath(); ctx.moveTo(470,y+h-4); ctx.lineTo(520,y+h+70); ctx.lineTo(590,y+h-4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    cRoundRect(ctx,x,y,w,h,36); ctx.fill(); ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.fillRect(478,y+h-8,104,14);
+    ctx.fillStyle="#000"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    lines.forEach((l,i)=>ctx.fillText(l,S/2,y+35+i*56+22));
+  }
+  // Explosion hinter dem Bild
+  ctx.lineWidth=14;
+  ctx.save(); ctx.translate(14,14); ctx.fillStyle="#000"; cBurst(ctx,bcx,bcy,rOut,rIn,16); ctx.fill(); ctx.restore();
+  ctx.fillStyle="#fff"; cBurst(ctx,bcx,bcy,rOut,rIn,16); ctx.fill(); ctx.stroke();
+  // Emoji-Bild
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.font=Math.round(rOut*1.05)+"px 'Apple Color Emoji','Noto Color Emoji','Segoe UI Emoji',sans-serif";
+  ctx.fillStyle="#000"; ctx.fillText(cfg.pic,bcx,bcy+rOut*0.06);
+  // Banner mit Stimmung
+  const label=m.label.toUpperCase();
+  let fs=84, lines;
+  for(;fs>=38;fs-=4){ ctx.font="900 "+fs+"px "+FONT; lines=cWrap(ctx,label,860); if(lines.length<=3 && lines.length*fs*1.08<=230) break; }
+  const bh=lines.length*fs*1.08+46, by=hasNote?900:880;
+  ctx.save(); ctx.translate(S/2,by); ctx.rotate(-0.04);
+  ctx.lineWidth=10;
+  ctx.fillStyle="#000"; cRoundRect(ctx,-470+12,-bh/2+12,940,bh,14); ctx.fill();
+  ctx.fillStyle="#fff04d"; cRoundRect(ctx,-470,-bh/2,940,bh,14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#000"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font="900 "+fs+"px "+FONT;
+  lines.forEach((l,i)=>ctx.fillText(l,0,-bh/2+23+fs*0.54+i*fs*1.08));
+  ctx.restore();
+  // Signatur
+  ctx.font="700 26px Arial, sans-serif"; ctx.textAlign="right"; ctx.fillStyle="rgba(0,0,0,0.55)";
+  ctx.fillText("shadolyn_life ✨",S-30,S-26);
+  return new Promise(res=>c.toBlob(res,"image/png"));
+}
+async function shareMoodImage(m, note){
+  try{
+    const blob=await drawMoodImage(m,note);
+    const file=new File([blob],"stimmung.png",{type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file]});
+      return;
+    }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download="stimmung.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    alert("Teilen von Bildern wird hier nicht unterstützt – das Bild wurde stattdessen gespeichert.");
+  }catch(e){
+    if(e && e.name==="AbortError") return;
+    shareText(`${m.emoji} Meine Stimmung: ${m.label}${note?"\n"+note:""}`);
+  }
+}
+document.getElementById("shareCurrent").onclick=()=>{
+  if(selMood===null){ alert("Bitte zuerst eine Stimmung auswählen."); return; }
+  shareMoodImage(MOODS[selMood], document.getElementById("moodNote").value);
+};
 
 async function shareText(text){
   if(navigator.share){
@@ -184,20 +368,20 @@ function renderMoods(){
   if(!items.length){ el.innerHTML='<div class="empty">Noch keine Einträge.</div>'; return; }
   el.innerHTML = items.slice().reverse().map((v,idx)=>{
     const realIdx = items.length-1-idx;
-    const m = MOODS[v.mood] || {emoji:"?",label:""};
+    const m = moodOf(v);
     return `<div class="entry"><div class="top"><span>${m.emoji} ${esc(m.label)}</span><span>${fmtTime(v.ts)}</span></div>${v.note?`<div>${esc(v.note)}</div>`:""}<button class="share-btn" data-i="${realIdx}">Teilen</button></div>`;
   }).join("");
   el.querySelectorAll("button.share-btn").forEach(b=>{
     b.onclick=()=>{
-      const v=items[b.dataset.i]; const m=MOODS[v.mood];
-      shareText(`${m.emoji} Meine Stimmung: ${m.label}${v.note?"\n"+v.note:""}`);
+      const v=items[b.dataset.i]; const m=moodOf(v);
+      shareMoodImage(m, v.note);
     };
   });
 }
 document.getElementById("saveMood").onclick=()=>{
   if(selMood===null){ alert("Bitte eine Stimmung auswählen."); return; }
   const items = load("sl_moods");
-  items.push({mood:selMood, note:document.getElementById("moodNote").value.trim(), ts:Date.now()});
+  items.push({mood:selMood, key:MOODS[selMood].label, note:document.getElementById("moodNote").value.trim(), ts:Date.now()});
   save("sl_moods", items);
   document.getElementById("moodNote").value="";
   selMood=null;
@@ -267,6 +451,116 @@ document.getElementById("saveHighlights").onclick=()=>{
   renderHighlights();
 };
 
+// ---- Vorfreude (Termine & Ereignisse) ----
+function parseISO(iso){ const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d); }
+function dayDiff(iso){ const t=new Date(); t.setHours(0,0,0,0); return Math.round((parseISO(iso)-t)/86400000); }
+function fmtDate(iso){ return parseISO(iso).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}); }
+function countdown(n){
+  if(n===0) return "heute 🎉";
+  if(n===1) return "morgen";
+  if(n>1) return `in ${n} Tagen`;
+  if(n===-1) return "gestern";
+  return `vor ${-n} Tagen`;
+}
+function eventHtml(v,i){
+  return `<div class="entry"><div class="top"><span><strong style="color:var(--text)">${esc(v.title)}</strong></span><span>${countdown(dayDiff(v.date))}</span></div><div>${fmtDate(v.date)}</div>${v.note?`<div>${esc(v.note)}</div>`:""}<button class="share-btn" data-i="${i}" data-role="share">Teilen</button><button class="del-btn" data-i="${i}" data-role="del">Löschen</button></div>`;
+}
+function renderEvents(){
+  const items=load("sl_events").map((v,i)=>({v,i}));
+  const up=items.filter(x=>dayDiff(x.v.date)>=0).sort((a,b)=>a.v.date.localeCompare(b.v.date));
+  const past=items.filter(x=>dayDiff(x.v.date)<0).sort((a,b)=>b.v.date.localeCompare(a.v.date));
+  document.getElementById("evUpcoming").innerHTML = up.length ? up.map(x=>eventHtml(x.v,x.i)).join("") : '<div class="empty">Noch nichts eingetragen.</div>';
+  document.getElementById("evPast").innerHTML = past.map(x=>eventHtml(x.v,x.i)).join("");
+  document.getElementById("evPastCard").classList.toggle("hidden", !past.length);
+  document.querySelectorAll("#tab-events button[data-role=share]").forEach(b=>{
+    b.onclick=()=>{ const v=load("sl_events")[b.dataset.i]; shareText(`🎉 Darauf freue ich mich: ${v.title}\n📅 ${fmtDate(v.date)}${v.note?"\n"+v.note:""}`); };
+  });
+  document.querySelectorAll("#tab-events button[data-role=del]").forEach(b=>{
+    b.onclick=()=>{
+      if(!confirm("Eintrag löschen?")) return;
+      const arr=load("sl_events"); arr.splice(parseInt(b.dataset.i),1); save("sl_events",arr); renderEvents();
+    };
+  });
+}
+document.getElementById("addEvent").onclick=()=>{
+  const title=document.getElementById("evTitle").value.trim();
+  const date=document.getElementById("evDate").value;
+  if(!title || !date){ alert("Bitte Titel und Datum eintragen."); return; }
+  const arr=load("sl_events");
+  arr.push({title, date, note:document.getElementById("evNote").value.trim(), ts:Date.now()});
+  save("sl_events", arr);
+  document.getElementById("evTitle").value=""; document.getElementById("evDate").value=""; document.getElementById("evNote").value="";
+  renderEvents();
+};
+
+// ---- Check-in System (Nervensystem Frühwarnsystem) ----
+const SYSTEM = [
+  {level:1, name:"Gelb", dot:"#f2c94c", emoji:"🟡",
+   title:"Stufe 1: Die gelbe Ampel (Der „Aha-Moment“)",
+   signals:["Kiefer-Verspannungen","Augen zucken","Unzählige Themen zur gleichen Zeit im Kopf"],
+   measuresTitle:"Sofort-Maßnahmen gelbe Ampel (Die Notbremse)",
+   measures:["Aktive To-do-Listen für den Tag zuklappen","Gedanken aufschreiben","10 Minuten offline Pause"]},
+  {level:2, name:"Orange", dot:"#f2994a", emoji:"🟠",
+   title:"Stufe 2: Die orange Ampel (Der „Druck-Stau“)",
+   signals:["Innerer Druck / Unruhe steigt","Ungeduldiger / schneller genervt"],
+   measuresTitle:"Sofort-Maßnahmen orange Ampel (Die System-Entlastung)",
+   measures:["Nur noch eine Aktivität für den Tag","Bewegung an der frischen Luft","Ab 19 Uhr offline"]},
+  {level:3, name:"Rot", dot:"#eb5757", emoji:"🔴",
+   title:"Stufe 3: Die rote Ampel (Der „Gefahr von Systemabsturz“-Modus)",
+   signals:["Keine Energie und trotzdem innerlich unruhig","Kein Fokus / keine Konzentration mehr möglich"],
+   measuresTitle:"Sofort-Maßnahmen rote Ampel (Der harte Reset)",
+   measures:["Ruhiges offline Wochenende ohne Aktivitäten","Gedanken für die Sicherheit aufschreiben"]}
+];
+
+function renderChecklist(){
+  document.getElementById("sysChecklist").innerHTML = SYSTEM.map(g=>`<div class="sys-group"><h3>${g.emoji} ${esc(g.title)}</h3>${
+    g.signals.map((t,i)=>`<label class="sys-check"><input type="checkbox" data-l="${g.level}" data-i="${i}"> ${esc(t)}</label>`).join("")
+  }</div>`).join("");
+}
+function setAmpel(level){
+  document.querySelectorAll("#ampel .lamp").forEach(l=>l.classList.toggle("on", parseInt(l.dataset.l)===level));
+}
+function systemShareText(v){
+  const g=SYSTEM[v.level-1];
+  return `${g.emoji} Nervensystem-Ampel: ${g.name}\nWarnsignale:\n${v.signals.map(x=>"- "+x).join("\n")}\n${g.measuresTitle}:\n${g.measures.map(x=>"- "+x).join("\n")}`;
+}
+function renderSystemHistory(){
+  const el=document.getElementById("sysHistory");
+  const items=load("sl_system");
+  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Einträge.</div>'; return; }
+  el.innerHTML = items.slice().reverse().map((v,idx)=>{
+    const realIdx=items.length-1-idx; const g=SYSTEM[v.level-1];
+    return `<div class="entry"><div class="top"><span><span class="dot" style="background:${g.dot}"></span>${g.name}</span><span>${fmtTime(v.ts)}</span></div><div>${v.signals.map(esc).join(", ")}</div><button class="share-btn" data-i="${realIdx}">Teilen</button></div>`;
+  }).join("");
+  el.querySelectorAll("button.share-btn").forEach(b=>{
+    b.onclick=()=>shareText(systemShareText(items[b.dataset.i]));
+  });
+}
+document.getElementById("sysEval").onclick=()=>{
+  const checked=[...document.querySelectorAll("#sysChecklist input:checked")].map(c=>({level:parseInt(c.dataset.l), text:SYSTEM[c.dataset.l-1].signals[c.dataset.i]}));
+  const res=document.getElementById("sysResult");
+  if(!checked.length){
+    setAmpel(0);
+    res.textContent="Keine Warnsignale ausgewählt – gerade ist alles ruhig.";
+    return;
+  }
+  const level=Math.max(...checked.map(c=>c.level));
+  const g=SYSTEM[level-1];
+  setAmpel(level);
+  res.textContent=`${g.emoji} ${g.name}`;
+  const arr=load("sl_system");
+  arr.push({level, signals:checked.map(c=>c.text), ts:Date.now()});
+  save("sl_system", arr);
+  renderSystemHistory();
+  document.getElementById("modalEmoji").textContent=g.emoji;
+  const mt=document.getElementById("modalText");
+  mt.classList.add("left");
+  mt.innerHTML=`<strong>${esc(g.measuresTitle)}</strong><ul>${g.measures.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
+  const overlay=document.getElementById("moodModal");
+  overlay.classList.remove("hidden"); overlay.style.display="flex";
+};
+
+renderChecklist(); renderSystemHistory(); renderEvents();
 renderMoods(); renderGoals(); renderHighlights();
 
 if('serviceWorker' in navigator){
