@@ -20,7 +20,7 @@
 }
 :root[data-theme="dark"]{--bg:#0d0a0d;--card:#1a121a;--text:#f8edf4;--sub:#b895aa;--border:#3b2236;}
 *{box-sizing:border-box}
-input[type=checkbox],input[type=range]{accent-color:var(--accent2)}
+input[type=checkbox],input[type=range],input[type=radio]{accent-color:var(--accent2)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;height:100%}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:14px 16px 8px;border-bottom:1px solid var(--border);z-index:5}
@@ -74,6 +74,24 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
 .sys-check input{width:20px;height:20px;flex:none}
 .sys-result{text-align:center;font-size:14px;margin-top:6px;color:var(--sub)}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)}
+.seg{display:flex;gap:18px;margin:12px 0 4px;font-size:14px}
+.seg label{display:flex;align-items:center;gap:6px}
+.fld-label{display:block;font-size:12px;color:var(--sub);margin:8px 0 4px}
+.goal-meta{font-size:12px;color:var(--sub);margin:4px 0 8px}
+.top-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.badge-ok{font-size:11px;background:var(--accent2);color:#fff;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.btn-row button{margin:0}
+.card.archive{padding:0;overflow:hidden}
+.folder{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-weight:600;padding:14px;text-align:left}
+.folder .cnt{margin-left:auto;font-weight:400;color:var(--sub);font-size:12px}
+.folder .chev{color:var(--sub)}
+.archive-body{padding:0 14px 10px}
+.archive .card{background:var(--bg);margin:8px 0 0}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+.confetti span{position:absolute;top:-8vh;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(112vh) rotate(540deg)}}
 </style>
 </head>
 <body>
@@ -97,17 +115,34 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
       <button class="secondary" id="shareCurrent">Als Comic-Bild teilen</button>
     </div>
     <div class="card">
-      <strong>Deine Einträge</strong>
-      <div id="myMoods"><div class="empty">Noch keine Einträge.</div></div>
+      <strong>Heute</strong>
+      <div id="myMoods"><div class="empty">Heute noch kein Eintrag.</div></div>
     </div>
+    <div id="arch-moods"></div>
   </section>
 
   <section id="tab-goals" class="hidden">
     <div class="card">
-      <input type="text" id="goalTitle" placeholder="Ziel-Titel (z.B. 'Jeden Monat 1 Buch lesen')">
+      <strong id="goalFormTitle">Neues Ziel</strong>
+      <input type="text" id="goalTitle" placeholder="Ziel-Titel (z. B. Jeden Monat 1 Buch lesen)" style="margin-top:8px">
+      <div class="seg">
+        <label><input type="radio" name="gtype" value="monthly" checked> Monatsziel</label>
+        <label><input type="radio" name="gtype" value="once"> Einmaliges Ziel</label>
+      </div>
+      <div id="gMonthlyBox">
+        <label class="fld-label" for="goalMonths">Für wie viele Monate in Folge? (max. 12)</label>
+        <select id="goalMonths"></select>
+      </div>
+      <div id="gOnceBox" class="hidden">
+        <label class="fld-label" for="goalEnd">Enddatum</label>
+        <input type="date" id="goalEnd">
+      </div>
       <button class="primary" id="addGoal">Ziel hinzufügen</button>
+      <button class="secondary hidden" id="cancelGoalEdit">Abbrechen</button>
     </div>
-    <div id="myGoals"><div class="empty">Noch keine Ziele.</div></div>
+    <strong style="display:block;margin:4px 2px 8px">Aktuelle Ziele</strong>
+    <div id="myGoals"><div class="empty">Keine aktuellen Ziele.</div></div>
+    <div id="arch-goals"></div>
   </section>
 
   <section id="tab-highlights" class="hidden">
@@ -119,9 +154,10 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
       <button class="primary" id="saveHighlights">Highlights speichern</button>
     </div>
     <div class="card">
-      <strong>Deine Highlights</strong>
-      <div id="myHighlights"><div class="empty">Noch keine Highlights.</div></div>
+      <strong>Heute</strong>
+      <div id="myHighlights"><div class="empty">Heute noch kein Eintrag.</div></div>
     </div>
+    <div id="arch-highlights"></div>
   </section>
 
   <section id="tab-events" class="hidden">
@@ -136,10 +172,7 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
       <strong>Kommende Ereignisse</strong>
       <div id="evUpcoming"><div class="empty">Noch nichts eingetragen.</div></div>
     </div>
-    <div class="card past hidden" id="evPastCard">
-      <strong>Vergangen</strong>
-      <div id="evPast"></div>
-    </div>
+    <div id="arch-events"></div>
   </section>
 
   <section id="tab-system" class="hidden">
@@ -155,9 +188,10 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
       <button class="primary" id="sysEval">Auswerten</button>
     </div>
     <div class="card">
-      <strong>Deine letzten Check-ins</strong>
-      <div id="sysHistory"><div class="empty">Noch keine Einträge.</div></div>
+      <strong>Heute</strong>
+      <div id="sysHistory"><div class="empty">Heute noch kein Eintrag.</div></div>
     </div>
+    <div id="arch-system"></div>
   </section>
 
 </main>
@@ -182,7 +216,7 @@ const MOODS = [
   {emoji:"😔", label:"schwierig", msg:"Schwierige Phasen sind anstrengend. Du musst heute nicht alles lösen – ein kleiner Schritt reicht."},
   {emoji:"😣", label:"voll gestresst", msg:"Kurz durchatmen. Eine Pause ist gerade erlaubt."},
   {emoji:"🙄", label:"I don't fucking care", msg:"Manchmal ist Null-Bock einfach die ehrliche Antwort."},
-  {emoji:"😡", label:"keep your mouth shut / spit my fucking rage in your face", msg:"Puh, das brodelt gerade richtig. Vielleicht hilft's, es dir kurz von der Seele zu schreiben, bevor du's jemandem an den Kopf wirfst."}
+  {emoji:"\u270A\uFE0F", label:"keep your mouth shut / spit my fucking rage in your face", msg:"Puh, das brodelt gerade richtig. Vielleicht hilft's, es dir kurz von der Seele zu schreiben, bevor du's jemandem an den Kopf wirfst."}
 ];
 let selMood=null;
 // Reihenfolge der Stimmungen vor Version 4 (damit alte Einträge richtig zugeordnet bleiben)
@@ -243,7 +277,7 @@ const COMIC = {
   "schwierig":{pic:"🌧️",bg:"#ffb36b"},
   "voll gestresst":{pic:"🤯",bg:"#ffb36b"},
   "I don't fucking care":{pic:"🖕",bg:"#ff8f7a"},
-  "keep your mouth shut / spit my fucking rage in your face":{pic:"👊",bg:"#ff6b5e"}
+  "keep your mouth shut / spit my fucking rage in your face":{pic:"\u270A\uFE0F",bg:"#ff6b5e"}
 };
 function cRoundRect(ctx,x,y,w,h,r){
   ctx.beginPath();
@@ -362,22 +396,51 @@ async function shareText(text){
   }
 }
 
+// ---- Hilfsfunktionen: Tag, Archiv, Belohnung ----
+function startOfToday(){ const t=new Date(); t.setHours(0,0,0,0); return t.getTime(); }
+const archOpen={};
+function archiveHtml(key, html, count, one, many){
+  const open=!!archOpen[key];
+  return `<div class="card archive"><button class="folder" data-act="arch" data-key="${key}"><span>📁 Archiv</span><span class="cnt">${count} ${count===1?one:many}</span><span class="chev">${open?"▾":"▸"}</span></button><div class="archive-body${open?"":" hidden"}">${count?html:'<div class="empty">Noch nichts im Archiv.</div>'}</div></div>`;
+}
+function splitByDay(items, tsOf){
+  const t0=startOfToday(), cur=[], arch=[];
+  for(let i=items.length-1;i>=0;i--){ (tsOf(items[i])<t0?arch:cur).push({v:items[i],i}); }
+  return {cur,arch};
+}
+function openModal(){ const o=document.getElementById("moodModal"); o.classList.remove("hidden"); o.style.display="flex"; }
+function confetti(){
+  const box=document.createElement("div"); box.className="confetti";
+  const em=["✨","💖","🎉","⭐","💗","🌟"];
+  for(let i=0;i<40;i++){
+    const s=document.createElement("span");
+    s.textContent=em[i%em.length];
+    s.style.left=(Math.random()*100)+"%";
+    s.style.animationDuration=(2+Math.random()*1.8)+"s";
+    s.style.animationDelay=(Math.random()*0.8)+"s";
+    s.style.fontSize=(16+Math.random()*16)+"px";
+    box.appendChild(s);
+  }
+  document.body.appendChild(box);
+  setTimeout(()=>box.remove(),4500);
+}
+function showReward(g){
+  document.getElementById("modalEmoji").textContent="🏆";
+  const mt=document.getElementById("modalText");
+  mt.classList.remove("left");
+  mt.innerHTML=`<strong>Ziel erreicht! 🎉</strong><br>„${esc(g.title)}“<br><br>Das hast du dir verdient – gönn dir etwas Schönes! ✨`;
+  openModal(); confetti();
+}
+
 // ---- Moods ----
+function moodEntryHtml(v,i){
+  const m=moodOf(v);
+  return `<div class="entry"><div class="top"><span>${m.emoji} ${esc(m.label)}</span><span>${fmtTime(v.ts)}</span></div>${v.note?`<div>${esc(v.note)}</div>`:""}<button class="share-btn" data-act="share-mood" data-i="${i}">Teilen</button></div>`;
+}
 function renderMoods(){
-  const el=document.getElementById("myMoods");
-  const items = load("sl_moods");
-  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Einträge.</div>'; return; }
-  el.innerHTML = items.slice().reverse().map((v,idx)=>{
-    const realIdx = items.length-1-idx;
-    const m = moodOf(v);
-    return `<div class="entry"><div class="top"><span>${m.emoji} ${esc(m.label)}</span><span>${fmtTime(v.ts)}</span></div>${v.note?`<div>${esc(v.note)}</div>`:""}<button class="share-btn" data-i="${realIdx}">Teilen</button></div>`;
-  }).join("");
-  el.querySelectorAll("button.share-btn").forEach(b=>{
-    b.onclick=()=>{
-      const v=items[b.dataset.i]; const m=moodOf(v);
-      shareMoodImage(m, v.note);
-    };
-  });
+  const {cur,arch}=splitByDay(load("sl_moods"), v=>v.ts);
+  document.getElementById("myMoods").innerHTML = cur.length ? cur.map(x=>moodEntryHtml(x.v,x.i)).join("") : '<div class="empty">Heute noch kein Eintrag.</div>';
+  document.getElementById("arch-moods").innerHTML = archiveHtml("moods", arch.map(x=>moodEntryHtml(x.v,x.i)).join(""), arch.length, "Eintrag", "Einträge");
 }
 document.getElementById("saveMood").onclick=()=>{
   if(selMood===null){ alert("Bitte eine Stimmung auswählen."); return; }
@@ -391,56 +454,113 @@ document.getElementById("saveMood").onclick=()=>{
 };
 
 // ---- Goals ----
-function renderGoals(){
-  const el=document.getElementById("myGoals");
-  const items = load("sl_goals");
-  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Ziele.</div>'; return; }
-  el.innerHTML = items.map((v,i)=>`<div class="card">
-    <div class="top" style="display:flex;justify-content:space-between">
-      <strong>${esc(v.title)}</strong><span>${v.progress||0}%</span>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" style="width:${v.progress||0}%"></div></div>
-    <input type="range" min="0" max="100" value="${v.progress||0}" data-i="${i}" class="goalSlider" style="margin-top:8px">
-    <button class="share-btn" data-i="${i}" data-role="share">Teilen</button>
-  </div>`).join("");
-  el.querySelectorAll(".goalSlider").forEach(s=>{
-    s.oninput=()=>{
-      const arr=load("sl_goals"); arr[s.dataset.i].progress=parseInt(s.value); save("sl_goals",arr); renderGoals();
-    };
-  });
-  el.querySelectorAll("button[data-role=share]").forEach(b=>{
-    b.onclick=()=>{
-      const v=items[b.dataset.i];
-      shareText(`🎯 Mein Ziel: ${v.title}\nFortschritt: ${v.progress||0}%`);
-    };
-  });
+let editGoalIdx=null;
+function normGoal(g){
+  if(!g) return g;
+  if(!g.type){ g.type="once"; g.endDate=g.endDate||""; g.achieved=(g.progress||0)>=100; }
+  if(g.type==="monthly" && !g.done) g.done={};
+  return g;
 }
+function monthList(g){
+  const [y,m]=g.start.split("-").map(Number); const base=y*12+(m-1);
+  const now=new Date(); const cur=now.getFullYear()*12+now.getMonth(); const out=[];
+  for(let k=0;k<g.months;k++){
+    const idx=base+k, yy=Math.floor(idx/12), mm=idx%12;
+    out.push({key:`${yy}-${String(mm+1).padStart(2,"0")}`, label:new Date(yy,mm,1).toLocaleDateString("de-DE",{month:"long",year:"numeric"}), future:idx>cur});
+  }
+  return out;
+}
+function monthsDone(g){ return monthList(g).filter(m=>g.done&&g.done[m.key]).length; }
+function goalAchieved(g){ return g.type==="monthly" ? monthsDone(g)>=g.months : !!g.achieved; }
+function goalEndTime(g){
+  if(g.type==="monthly"){ const [y,m]=g.start.split("-").map(Number); return new Date(y,(m-1)+g.months,0).getTime(); }
+  return g.endDate ? parseISO(g.endDate).getTime() : null;
+}
+function goalPast(g){ const e=goalEndTime(g); return e!==null && e<startOfToday(); }
+function goalCardHtml(g,i){
+  const ach=goalAchieved(g); let meta="", body="";
+  if(g.type==="monthly"){
+    const ms=monthList(g), dc=monthsDone(g);
+    meta=`Monatsziel · ${g.months} ${g.months===1?"Monat":"Monate"} in Folge · ${dc}/${g.months} geschafft`;
+    body=`<div class="progress-bar"><div class="progress-fill" style="width:${dc/g.months*100}%"></div></div>`+
+      ms.map(m=>`<label class="sys-check"><input type="checkbox" data-act="goal-month" data-i="${i}" data-key="${m.key}" ${g.done[m.key]?"checked":""} ${m.future?"disabled":""}> ${m.label}${m.future?" (noch nicht dran)":""}</label>`).join("");
+  } else {
+    meta="Einmaliges Ziel"+(g.endDate?` · bis ${fmtDate(g.endDate)} (${countdown(dayDiff(g.endDate))})`:" · ohne Enddatum");
+    body=`<label class="sys-check"><input type="checkbox" data-act="goal-once" data-i="${i}" ${g.achieved?"checked":""}> Ziel erreicht</label>`;
+  }
+  return `<div class="card"><div class="top-row"><strong>${esc(g.title)}</strong>${ach?'<span class="badge-ok">✅ erreicht</span>':""}</div><div class="goal-meta">${meta}</div>${body}<div class="btn-row"><button class="share-btn" data-act="goal-share" data-i="${i}">Teilen</button><button class="del-btn" data-act="goal-edit" data-i="${i}">Bearbeiten</button><button class="del-btn" data-act="goal-del" data-i="${i}">Löschen</button></div></div>`;
+}
+function goalShareText(g){
+  const ok=goalAchieved(g);
+  if(g.type==="monthly") return `🎯 Mein Monatsziel: ${g.title}\n${monthsDone(g)} von ${g.months} Monaten geschafft${ok?" ✅":""}`;
+  return `🎯 Mein Ziel: ${g.title}${g.endDate?"\nBis: "+fmtDate(g.endDate):""}${ok?"\n✅ Erreicht!":""}`;
+}
+function renderGoals(){
+  const all=load("sl_goals").map(normGoal), cur=[], arch=[];
+  all.forEach((g,i)=>{ (goalPast(g)?arch:cur).push({g,i}); });
+  cur.reverse();
+  arch.sort((a,b)=>(goalEndTime(b.g)||0)-(goalEndTime(a.g)||0));
+  document.getElementById("myGoals").innerHTML = cur.length ? cur.map(x=>goalCardHtml(x.g,x.i)).join("") : '<div class="empty">Keine aktuellen Ziele.</div>';
+  document.getElementById("arch-goals").innerHTML = archiveHtml("goals", arch.map(x=>goalCardHtml(x.g,x.i)).join(""), arch.length, "Ziel", "Ziele");
+}
+function updateGoalType(){
+  const t=document.querySelector("input[name=gtype]:checked").value;
+  document.getElementById("gMonthlyBox").classList.toggle("hidden", t!=="monthly");
+  document.getElementById("gOnceBox").classList.toggle("hidden", t!=="once");
+}
+function resetGoalForm(){
+  editGoalIdx=null;
+  document.getElementById("goalFormTitle").textContent="Neues Ziel";
+  document.getElementById("goalTitle").value="";
+  document.querySelectorAll("input[name=gtype]").forEach(r=>{ r.disabled=false; r.checked=(r.value==="monthly"); });
+  document.getElementById("goalMonths").value="3";
+  document.getElementById("goalEnd").value="";
+  document.getElementById("addGoal").textContent="Ziel hinzufügen";
+  document.getElementById("cancelGoalEdit").classList.add("hidden");
+  updateGoalType();
+}
+(function(){
+  const sel=document.getElementById("goalMonths");
+  for(let n=1;n<=12;n++){ const o=document.createElement("option"); o.value=String(n); o.textContent=n+(n===1?" Monat":" Monate"); sel.appendChild(o); }
+  sel.value="3";
+  document.querySelectorAll("input[name=gtype]").forEach(r=>r.onchange=updateGoalType);
+  updateGoalType();
+})();
+document.getElementById("cancelGoalEdit").onclick=resetGoalForm;
 document.getElementById("addGoal").onclick=()=>{
   const title=document.getElementById("goalTitle").value.trim();
-  if(!title) return;
-  const items=load("sl_goals");
-  items.push({title, progress:0, ts:Date.now()});
-  save("sl_goals", items);
-  document.getElementById("goalTitle").value="";
+  if(!title){ alert("Bitte einen Ziel-Titel eintragen."); return; }
+  const type=document.querySelector("input[name=gtype]:checked").value;
+  const months=parseInt(document.getElementById("goalMonths").value);
+  const endDate=document.getElementById("goalEnd").value;
+  if(type==="once"){
+    if(!endDate){ alert("Bitte ein Enddatum angeben."); return; }
+    if(editGoalIdx===null && dayDiff(endDate)<0){ alert("Das Enddatum muss heute oder in der Zukunft liegen."); return; }
+  }
+  const arr=load("sl_goals").map(normGoal);
+  if(editGoalIdx!==null && arr[editGoalIdx]){
+    const g=arr[editGoalIdx]; g.title=title;
+    if(g.type==="monthly") g.months=months; else g.endDate=endDate;
+  } else if(type==="monthly"){
+    const n=new Date();
+    arr.push({type:"monthly", title, months, start:`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`, done:{}, ts:Date.now()});
+  } else {
+    arr.push({type:"once", title, endDate, achieved:false, ts:Date.now()});
+  }
+  save("sl_goals", arr);
+  resetGoalForm();
   renderGoals();
 };
 
 // ---- Highlights ----
+function hlEntryHtml(v,i){
+  const list=(v.items||[]).map(t=>`<li>${esc(t)}</li>`).join("");
+  return `<div class="entry"><div class="top"><span>✨ Highlights</span><span>${fmtTime(v.ts)}</span></div><ul style="margin:6px 0 0;padding-left:18px">${list}</ul><button class="share-btn" data-act="share-hl" data-i="${i}">Teilen</button></div>`;
+}
 function renderHighlights(){
-  const el=document.getElementById("myHighlights");
-  const items = load("sl_highlights");
-  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Highlights.</div>'; return; }
-  el.innerHTML = items.slice().reverse().map((v,idx)=>{
-    const realIdx = items.length-1-idx;
-    const list = (v.items||[]).map(i=>`<li>${esc(i)}</li>`).join("");
-    return `<div class="entry"><div class="top"><span>✨ Highlights</span><span>${fmtTime(v.ts)}</span></div><ul style="margin:6px 0 0;padding-left:18px">${list}</ul><button class="share-btn" data-i="${realIdx}">Teilen</button></div>`;
-  }).join("");
-  el.querySelectorAll("button.share-btn").forEach(b=>{
-    b.onclick=()=>{
-      const v=items[b.dataset.i];
-      shareText(`✨ Meine Highlights heute:\n${(v.items||[]).map(i=>"- "+i).join("\n")}`);
-    };
-  });
+  const {cur,arch}=splitByDay(load("sl_highlights"), v=>v.ts);
+  document.getElementById("myHighlights").innerHTML = cur.length ? cur.map(x=>hlEntryHtml(x.v,x.i)).join("") : '<div class="empty">Heute noch kein Eintrag.</div>';
+  document.getElementById("arch-highlights").innerHTML = archiveHtml("highlights", arch.map(x=>hlEntryHtml(x.v,x.i)).join(""), arch.length, "Eintrag", "Einträge");
 }
 document.getElementById("saveHighlights").onclick=()=>{
   const items=[document.getElementById("hl1").value.trim(), document.getElementById("hl2").value.trim(), document.getElementById("hl3").value.trim()].filter(Boolean);
@@ -464,24 +584,14 @@ function countdown(n){
   return `vor ${-n} Tagen`;
 }
 function eventHtml(v,i){
-  return `<div class="entry"><div class="top"><span><strong style="color:var(--text)">${esc(v.title)}</strong></span><span>${countdown(dayDiff(v.date))}</span></div><div>${fmtDate(v.date)}</div>${v.note?`<div>${esc(v.note)}</div>`:""}<button class="share-btn" data-i="${i}" data-role="share">Teilen</button><button class="del-btn" data-i="${i}" data-role="del">Löschen</button></div>`;
+  return `<div class="entry"><div class="top"><span><strong style="color:var(--text)">${esc(v.title)}</strong></span><span>${countdown(dayDiff(v.date))}</span></div><div>${fmtDate(v.date)}</div>${v.note?`<div>${esc(v.note)}</div>`:""}<div class="btn-row"><button class="share-btn" data-act="share-ev" data-i="${i}">Teilen</button><button class="del-btn" data-act="del-ev" data-i="${i}">Löschen</button></div></div>`;
 }
 function renderEvents(){
   const items=load("sl_events").map((v,i)=>({v,i}));
   const up=items.filter(x=>dayDiff(x.v.date)>=0).sort((a,b)=>a.v.date.localeCompare(b.v.date));
   const past=items.filter(x=>dayDiff(x.v.date)<0).sort((a,b)=>b.v.date.localeCompare(a.v.date));
   document.getElementById("evUpcoming").innerHTML = up.length ? up.map(x=>eventHtml(x.v,x.i)).join("") : '<div class="empty">Noch nichts eingetragen.</div>';
-  document.getElementById("evPast").innerHTML = past.map(x=>eventHtml(x.v,x.i)).join("");
-  document.getElementById("evPastCard").classList.toggle("hidden", !past.length);
-  document.querySelectorAll("#tab-events button[data-role=share]").forEach(b=>{
-    b.onclick=()=>{ const v=load("sl_events")[b.dataset.i]; shareText(`🎉 Darauf freue ich mich: ${v.title}\n📅 ${fmtDate(v.date)}${v.note?"\n"+v.note:""}`); };
-  });
-  document.querySelectorAll("#tab-events button[data-role=del]").forEach(b=>{
-    b.onclick=()=>{
-      if(!confirm("Eintrag löschen?")) return;
-      const arr=load("sl_events"); arr.splice(parseInt(b.dataset.i),1); save("sl_events",arr); renderEvents();
-    };
-  });
+  document.getElementById("arch-events").innerHTML = archiveHtml("events", past.map(x=>eventHtml(x.v,x.i)).join(""), past.length, "Ereignis", "Ereignisse");
 }
 document.getElementById("addEvent").onclick=()=>{
   const title=document.getElementById("evTitle").value.trim();
@@ -493,6 +603,52 @@ document.getElementById("addEvent").onclick=()=>{
   document.getElementById("evTitle").value=""; document.getElementById("evDate").value=""; document.getElementById("evNote").value="";
   renderEvents();
 };
+
+// ---- Klicks (Teilen, Löschen, Archiv, Ziele) ----
+document.addEventListener("click",(e)=>{
+  const t=e.target.closest("[data-act]"); if(!t) return;
+  const act=t.dataset.act, i=parseInt(t.dataset.i);
+  switch(act){
+    case "arch": {
+      const hiddenNow=t.nextElementSibling.classList.toggle("hidden");
+      archOpen[t.dataset.key]=!hiddenNow;
+      t.querySelector(".chev").textContent=hiddenNow?"▸":"▾";
+      break; }
+    case "share-mood": { const v=load("sl_moods")[i]; if(v) shareMoodImage(moodOf(v), v.note); break; }
+    case "share-hl": { const v=load("sl_highlights")[i]; if(v) shareText(`✨ Meine Highlights heute:\n${(v.items||[]).map(x=>"- "+x).join("\n")}`); break; }
+    case "share-sys": { const v=load("sl_system")[i]; if(v) shareText(systemShareText(v)); break; }
+    case "share-ev": { const v=load("sl_events")[i]; if(v) shareText(`🎉 Darauf freue ich mich: ${v.title}\n📅 ${fmtDate(v.date)}${v.note?"\n"+v.note:""}`); break; }
+    case "del-ev": {
+      if(!confirm("Eintrag löschen?")) break;
+      const arr=load("sl_events"); arr.splice(i,1); save("sl_events",arr); renderEvents(); break; }
+    case "goal-share": { const g=normGoal(load("sl_goals")[i]); if(g) shareText(goalShareText(g)); break; }
+    case "goal-del": {
+      if(!confirm("Ziel wirklich löschen?")) break;
+      const arr=load("sl_goals"); arr.splice(i,1); save("sl_goals",arr); resetGoalForm(); renderGoals(); break; }
+    case "goal-edit": {
+      const g=normGoal(load("sl_goals")[i]); if(!g) break;
+      editGoalIdx=i;
+      document.getElementById("goalFormTitle").textContent="Ziel bearbeiten";
+      document.getElementById("goalTitle").value=g.title;
+      document.querySelectorAll("input[name=gtype]").forEach(r=>{ r.checked=(r.value===g.type); r.disabled=true; });
+      document.getElementById("goalMonths").value=String(g.months||3);
+      document.getElementById("goalEnd").value=g.endDate||"";
+      document.getElementById("addGoal").textContent="Änderungen speichern";
+      document.getElementById("cancelGoalEdit").classList.remove("hidden");
+      updateGoalType();
+      window.scrollTo({top:0,behavior:"smooth"});
+      break; }
+  }
+});
+document.addEventListener("change",(e)=>{
+  const t=e.target; if(!t.dataset || (t.dataset.act!=="goal-month" && t.dataset.act!=="goal-once")) return;
+  const arr=load("sl_goals").map(normGoal), g=arr[parseInt(t.dataset.i)]; if(!g) return;
+  const before=goalAchieved(g);
+  if(t.dataset.act==="goal-month"){ g.done[t.dataset.key]=t.checked; } else { g.achieved=t.checked; }
+  save("sl_goals",arr);
+  renderGoals();
+  if(!before && goalAchieved(g)) showReward(g);
+});
 
 // ---- Check-in System (Nervensystem Frühwarnsystem) ----
 const SYSTEM = [
@@ -525,17 +681,14 @@ function systemShareText(v){
   const g=SYSTEM[v.level-1];
   return `${g.emoji} Nervensystem-Ampel: ${g.name}\nWarnsignale:\n${v.signals.map(x=>"- "+x).join("\n")}\n${g.measuresTitle}:\n${g.measures.map(x=>"- "+x).join("\n")}`;
 }
+function sysEntryHtml(v,i){
+  const g=SYSTEM[v.level-1];
+  return `<div class="entry"><div class="top"><span><span class="dot" style="background:${g.dot}"></span>${g.name}</span><span>${fmtTime(v.ts)}</span></div><div>${v.signals.map(esc).join(", ")}</div><button class="share-btn" data-act="share-sys" data-i="${i}">Teilen</button></div>`;
+}
 function renderSystemHistory(){
-  const el=document.getElementById("sysHistory");
-  const items=load("sl_system");
-  if(!items.length){ el.innerHTML='<div class="empty">Noch keine Einträge.</div>'; return; }
-  el.innerHTML = items.slice().reverse().map((v,idx)=>{
-    const realIdx=items.length-1-idx; const g=SYSTEM[v.level-1];
-    return `<div class="entry"><div class="top"><span><span class="dot" style="background:${g.dot}"></span>${g.name}</span><span>${fmtTime(v.ts)}</span></div><div>${v.signals.map(esc).join(", ")}</div><button class="share-btn" data-i="${realIdx}">Teilen</button></div>`;
-  }).join("");
-  el.querySelectorAll("button.share-btn").forEach(b=>{
-    b.onclick=()=>shareText(systemShareText(items[b.dataset.i]));
-  });
+  const {cur,arch}=splitByDay(load("sl_system"), v=>v.ts);
+  document.getElementById("sysHistory").innerHTML = cur.length ? cur.map(x=>sysEntryHtml(x.v,x.i)).join("") : '<div class="empty">Heute noch kein Eintrag.</div>';
+  document.getElementById("arch-system").innerHTML = archiveHtml("system", arch.map(x=>sysEntryHtml(x.v,x.i)).join(""), arch.length, "Eintrag", "Einträge");
 }
 document.getElementById("sysEval").onclick=()=>{
   const checked=[...document.querySelectorAll("#sysChecklist input:checked")].map(c=>({level:parseInt(c.dataset.l), text:SYSTEM[c.dataset.l-1].signals[c.dataset.i]}));
@@ -561,8 +714,9 @@ document.getElementById("sysEval").onclick=()=>{
   overlay.classList.remove("hidden"); overlay.style.display="flex";
 };
 
-renderChecklist(); renderSystemHistory(); renderEvents();
-renderMoods(); renderGoals(); renderHighlights();
+function renderAll(){ renderMoods(); renderGoals(); renderHighlights(); renderEvents(); renderSystemHistory(); }
+renderChecklist(); renderAll();
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) renderAll(); });
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
