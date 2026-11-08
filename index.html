@@ -99,6 +99,8 @@ select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px soli
 #workPicker .mood-btn.sel{border-color:var(--accent);background:rgba(255,79,168,.15)}
 #workPicker .thumb{width:100%;height:auto;aspect-ratio:1376/752}
 .wrow{display:flex;gap:10px;align-items:center}
+#moodPicker .mood-btn:last-child{grid-column:1 / -1}
+#moodPicker .mood-btn:last-child .ml{font-size:11px;line-height:1.1}
 </style>
 </head>
 <body>
@@ -107,10 +109,10 @@ select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px soli
   <div class="tabs">
     <div class="tab active" data-tab="checkin">Check-in Stimmung</div>
     <div class="tab" data-tab="work">Check-in Arbeit</div>
+    <div class="tab" data-tab="system">Check-in System</div>
     <div class="tab" data-tab="goals">Ziele</div>
     <div class="tab" data-tab="highlights">Highlights</div>
     <div class="tab" data-tab="events">Vorfreude</div>
-    <div class="tab" data-tab="system">Check-in System</div>
   </div>
 </header>
 <main>
