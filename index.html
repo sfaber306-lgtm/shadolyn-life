@@ -62,10 +62,13 @@ button.share-btn{background:none;border:1px solid var(--border);color:var(--acce
 .modal-text.left{text-align:left}
 .modal-text ul{margin:6px 0 0;padding-left:18px}
 .modal-text li{margin:4px 0}
-.ampel{display:flex;justify-content:center;gap:16px;background:#2b2b2b;border-radius:40px;padding:14px 22px;width:max-content;margin:12px auto}
-.lamp{width:52px;height:52px;border-radius:50%;opacity:.18;transition:opacity .3s,box-shadow .3s}
+.ampel{display:flex;justify-content:center;gap:12px;background:#2b2b2b;border-radius:40px;padding:14px 20px;width:max-content;margin:12px auto}
+.lamp{width:46px;height:46px;border-radius:50%;opacity:.18;transition:opacity .3s,box-shadow .3s}
 .lamp.y{background:#f2c94c}.lamp.o{background:#f2994a}.lamp.r{background:#eb5757}
+.lamp.g{background:#4cd07d}
 .lamp.on{opacity:1}
+.lamp.g.on{box-shadow:0 0 26px 6px rgba(76,208,125,.75)}
+.sys-green{border-top:1px solid var(--border);margin-top:6px;padding-top:12px}
 .lamp.y.on{box-shadow:0 0 26px 6px rgba(242,201,76,.75)}
 .lamp.o.on{box-shadow:0 0 26px 6px rgba(242,153,74,.75)}
 .lamp.r.on{box-shadow:0 0 26px 6px rgba(235,87,87,.75)}
@@ -204,6 +207,7 @@ select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px soli
     <div class="card">
       <strong>Nervensystem Frühwarnsystem</strong>
       <div class="ampel" id="ampel">
+        <div class="lamp g" data-l="0"></div>
         <div class="lamp y" data-l="1"></div>
         <div class="lamp o" data-l="2"></div>
         <div class="lamp r" data-l="3"></div>
@@ -496,7 +500,8 @@ const WORK=[
   {id:"tired", label:"I am really tired."},
   {id:"drink", label:"I need a drink."},
   {id:"fireme", label:"Fire me IDGAF."},
-  {id:"shutup", label:"Shut the fuck up!"}
+  {id:"shutup", label:"Shut the fuck up!"},
+  {id:"finish", label:"When the hell can I finish work today?"}
 ];
 WORK.forEach(w=>w.img="arbeit-"+w.id+".jpg");
 function workOf(v){ return WORK.find(w=>w.id===v.key) || WORK[0]; }
@@ -772,20 +777,30 @@ const SYSTEM = [
    measures:["Ruhiges offline Wochenende ohne Aktivitäten","Gedanken für die Sicherheit aufschreiben"]}
 ];
 
+const GREEN={level:0, name:"Grün", dot:"#4cd07d", emoji:"🟢", signal:"Alles im grünen Bereich"};
+function sysGroup(l){ return l===0 ? GREEN : SYSTEM[l-1]; }
 function renderChecklist(){
   document.getElementById("sysChecklist").innerHTML = `<div class="sys-group">${
     SYSTEM.map(g=>g.signals.map((t,i)=>`<label class="sys-check"><input type="checkbox" data-l="${g.level}" data-i="${i}"> ${esc(t)}</label>`).join("")).join("")
-  }</div>`;
+  }<label class="sys-check sys-green"><input type="checkbox" data-l="0" data-i="0"> ${esc(GREEN.signal)}</label></div>`;
 }
+document.getElementById("sysChecklist").addEventListener("change",(e)=>{
+  const t=e.target; if(!t.matches("input[type=checkbox]") || !t.checked) return;
+  const isGreen=t.dataset.l==="0";
+  document.querySelectorAll("#sysChecklist input").forEach(c=>{
+    if(c!==t && (isGreen || c.dataset.l==="0")) c.checked=false;
+  });
+});
 function setAmpel(level){
   document.querySelectorAll("#ampel .lamp").forEach(l=>l.classList.toggle("on", parseInt(l.dataset.l)===level));
 }
 function systemShareText(v){
-  const g=SYSTEM[v.level-1];
+  const g=sysGroup(v.level);
+  if(v.level===0) return `${g.emoji} Nervensystem-Ampel: ${g.name}\nAlles im grünen Bereich 👍`;
   return `${g.emoji} Nervensystem-Ampel: ${g.name}\nWarnsignale:\n${v.signals.map(x=>"- "+x).join("\n")}\n${g.measuresTitle}:\n${g.measures.map(x=>"- "+x).join("\n")}`;
 }
 function sysEntryHtml(v,i){
-  const g=SYSTEM[v.level-1];
+  const g=sysGroup(v.level);
   return `<div class="entry"><div class="top"><span><span class="dot" style="background:${g.dot}"></span>${g.name}</span><span>${fmtTime(v.ts)}</span></div><div>${v.signals.map(esc).join(", ")}</div><button class="share-btn" data-act="share-sys" data-i="${i}">Teilen</button></div>`;
 }
 function renderSystemHistory(){
@@ -794,15 +809,15 @@ function renderSystemHistory(){
   document.getElementById("arch-system").innerHTML = archiveHtml("system", arch.map(x=>sysEntryHtml(x.v,x.i)).join(""), arch.length, "Eintrag", "Einträge");
 }
 document.getElementById("sysEval").onclick=()=>{
-  const checked=[...document.querySelectorAll("#sysChecklist input:checked")].map(c=>({level:parseInt(c.dataset.l), text:SYSTEM[c.dataset.l-1].signals[c.dataset.i]}));
+  const checked=[...document.querySelectorAll("#sysChecklist input:checked")].map(c=>({level:parseInt(c.dataset.l), text:c.dataset.l==="0" ? GREEN.signal : SYSTEM[c.dataset.l-1].signals[c.dataset.i]}));
   const res=document.getElementById("sysResult");
   if(!checked.length){
-    setAmpel(0);
+    setAmpel(-1);
     res.textContent="Keine Warnsignale ausgewählt – gerade ist alles ruhig.";
     return;
   }
   const level=Math.max(...checked.map(c=>c.level));
-  const g=SYSTEM[level-1];
+  const g=sysGroup(level);
   setAmpel(level);
   res.textContent=`${g.emoji} ${g.name}`;
   const arr=load("sl_system");
@@ -811,8 +826,13 @@ document.getElementById("sysEval").onclick=()=>{
   renderSystemHistory();
   document.getElementById("modalEmoji").textContent=g.emoji;
   const mt=document.getElementById("modalText");
-  mt.classList.add("left");
-  mt.innerHTML=`<strong>${esc(g.measuresTitle)}</strong><ul>${g.measures.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
+  if(level===0){
+    mt.classList.remove("left");
+    mt.textContent="Super, weiter so 👍!";
+  } else {
+    mt.classList.add("left");
+    mt.innerHTML=`<strong>${esc(g.measuresTitle)}</strong><ul>${g.measures.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
+  }
   const overlay=document.getElementById("moodModal");
   overlay.classList.remove("hidden"); overlay.style.display="flex";
 };
