@@ -92,6 +92,13 @@ select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px soli
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
 .confetti span{position:absolute;top:-8vh;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(112vh) rotate(540deg)}}
+.modal-card.wide{max-width:420px;padding:16px}
+.work-img{width:100%;height:auto;display:block;border-radius:12px;border:3px solid #000}
+.thumb{width:56px;height:31px;object-fit:cover;border-radius:6px;border:2px solid #000;flex:none}
+#workPicker .mood-btn{flex-direction:column;align-items:stretch;gap:6px;border:2px solid var(--border);padding:8px}
+#workPicker .mood-btn.sel{border-color:var(--accent);background:rgba(255,79,168,.15)}
+#workPicker .thumb{width:100%;height:auto;aspect-ratio:1376/752}
+.wrow{display:flex;gap:10px;align-items:center}
 </style>
 </head>
 <body>
@@ -99,6 +106,7 @@ select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px soli
   <h1>✨ shadolyn_life</h1>
   <div class="tabs">
     <div class="tab active" data-tab="checkin">Check-in Stimmung</div>
+    <div class="tab" data-tab="work">Check-in Arbeit</div>
     <div class="tab" data-tab="goals">Ziele</div>
     <div class="tab" data-tab="highlights">Highlights</div>
     <div class="tab" data-tab="events">Vorfreude</div>
@@ -119,6 +127,21 @@ select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px soli
       <div id="myMoods"><div class="empty">Heute noch kein Eintrag.</div></div>
     </div>
     <div id="arch-moods"></div>
+  </section>
+
+  <section id="tab-work" class="hidden">
+    <div class="card">
+      <strong>Wie läuft die Arbeit gerade?</strong>
+      <div class="moods" id="workPicker" style="margin-top:10px"></div>
+      <textarea id="workNote" placeholder="Was ist los? (optional)"></textarea>
+      <button class="primary" id="saveWork">Eintrag speichern</button>
+      <button class="secondary" id="shareWork">Als Bild teilen</button>
+    </div>
+    <div class="card">
+      <strong>Heute</strong>
+      <div id="myWork"><div class="empty">Heute noch kein Eintrag.</div></div>
+    </div>
+    <div id="arch-work"></div>
   </section>
 
   <section id="tab-goals" class="hidden">
@@ -195,6 +218,14 @@ select{width:100%;font-family:inherit;font-size:14px;padding:8px;border:1px soli
   </section>
 
 </main>
+
+<div id="workModal" class="modal-overlay hidden">
+  <div class="modal-card wide">
+    <img id="workModalImg" class="work-img" alt="">
+    <button class="secondary" id="workModalShare">Teilen</button>
+    <button class="primary" id="workModalClose">Schließen</button>
+  </div>
+</div>
 
 <div id="moodModal" class="modal-overlay hidden">
   <div class="modal-card">
@@ -453,6 +484,75 @@ document.getElementById("saveMood").onclick=()=>{
   renderMoods();
 };
 
+// ---- Check-in Arbeit ----
+const WORK=[
+  {id:"early", label:"It’s too early for this shit."},
+  {id:"leave", label:"I should just leave."},
+  {id:"hungry", label:"I am so hungry."},
+  {id:"whatdoing", label:"What the fuck I’m doing here?"},
+  {id:"fuckthis", label:"Fuck this"},
+  {id:"tired", label:"I am really tired."},
+  {id:"drink", label:"I need a drink."},
+  {id:"fireme", label:"Fire me IDGAF."},
+  {id:"shutup", label:"Shut the fuck up!"}
+];
+WORK.forEach(w=>w.img="arbeit-"+w.id+".jpg");
+function workOf(v){ return WORK.find(w=>w.id===v.key) || WORK[0]; }
+let selWork=null, popupWork=null;
+const workPicker=document.getElementById("workPicker");
+WORK.forEach((w,i)=>{
+  const b=document.createElement("button");
+  b.className="mood-btn";
+  b.innerHTML=`<img class="thumb" src="${w.img}" alt=""><span class="ml">${esc(w.label)}</span>`;
+  b.onclick=()=>{
+    selWork=i; [...workPicker.children].forEach(c=>c.classList.remove("sel")); b.classList.add("sel");
+    popupWork=w;
+    document.getElementById("workModalImg").src=w.img;
+    document.getElementById("workModalImg").alt=w.label;
+    document.getElementById("workModal").classList.remove("hidden");
+  };
+  workPicker.appendChild(b);
+});
+document.getElementById("workModalClose").onclick=()=>document.getElementById("workModal").classList.add("hidden");
+document.getElementById("workModalShare").onclick=()=>{ if(popupWork) shareWorkImage(popupWork); };
+async function shareWorkImage(w){
+  try{
+    const resp=await fetch(w.img); const blob=await resp.blob();
+    const file=new File([blob],"arbeit.jpg",{type:"image/jpeg"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download="arbeit.jpg";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    alert("Teilen von Bildern wird hier nicht unterstützt – das Bild wurde stattdessen gespeichert.");
+  }catch(e){
+    if(e && e.name==="AbortError") return;
+    shareText(w.label);
+  }
+}
+function workEntryHtml(v,i){
+  const w=workOf(v);
+  return `<div class="entry"><div class="top"><span>${esc(w.label)}</span><span>${fmtTime(v.ts)}</span></div><div class="wrow" style="margin-top:6px"><img class="thumb" src="${w.img}" alt="">${v.note?`<div>${esc(v.note)}</div>`:""}</div><button class="share-btn" data-act="share-work" data-i="${i}">Teilen</button></div>`;
+}
+function renderWork(){
+  const {cur,arch}=splitByDay(load("sl_work"), v=>v.ts);
+  document.getElementById("myWork").innerHTML = cur.length ? cur.map(x=>workEntryHtml(x.v,x.i)).join("") : '<div class="empty">Heute noch kein Eintrag.</div>';
+  document.getElementById("arch-work").innerHTML = archiveHtml("work", arch.map(x=>workEntryHtml(x.v,x.i)).join(""), arch.length, "Eintrag", "Einträge");
+}
+document.getElementById("saveWork").onclick=()=>{
+  if(selWork===null){ alert("Bitte eine Auswahl treffen."); return; }
+  const items=load("sl_work");
+  items.push({key:WORK[selWork].id, note:document.getElementById("workNote").value.trim(), ts:Date.now()});
+  save("sl_work", items);
+  document.getElementById("workNote").value="";
+  selWork=null; [...workPicker.children].forEach(c=>c.classList.remove("sel"));
+  renderWork();
+};
+document.getElementById("shareWork").onclick=()=>{
+  if(selWork===null){ alert("Bitte zuerst eine Auswahl treffen."); return; }
+  shareWorkImage(WORK[selWork]);
+};
+
 // ---- Goals ----
 let editGoalIdx=null;
 function normGoal(g){
@@ -614,6 +714,7 @@ document.addEventListener("click",(e)=>{
       archOpen[t.dataset.key]=!hiddenNow;
       t.querySelector(".chev").textContent=hiddenNow?"▸":"▾";
       break; }
+    case "share-work": { const v=load("sl_work")[i]; if(v) shareWorkImage(workOf(v)); break; }
     case "share-mood": { const v=load("sl_moods")[i]; if(v) shareMoodImage(moodOf(v), v.note); break; }
     case "share-hl": { const v=load("sl_highlights")[i]; if(v) shareText(`✨ Meine Highlights heute:\n${(v.items||[]).map(x=>"- "+x).join("\n")}`); break; }
     case "share-sys": { const v=load("sl_system")[i]; if(v) shareText(systemShareText(v)); break; }
@@ -714,7 +815,7 @@ document.getElementById("sysEval").onclick=()=>{
   overlay.classList.remove("hidden"); overlay.style.display="flex";
 };
 
-function renderAll(){ renderMoods(); renderGoals(); renderHighlights(); renderEvents(); renderSystemHistory(); }
+function renderAll(){ renderMoods(); renderWork(); renderGoals(); renderHighlights(); renderEvents(); renderSystemHistory(); }
 renderChecklist(); renderAll();
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) renderAll(); });
 
